@@ -1,5 +1,5 @@
 # ws2801scratch
-A Scratch extension and python-based server for WS2801 led stripes connected to Raspberry Pi
+A Scratch extension and python-based server for WS2801 led strips connected to a Raspberry Pi.
 
 ## Introduction
 I wanted to create a way for my children to program a led strip using the popular [Scratch](http://scratch.mit.edu/) programming language for children. Even though there is lots of information and code to be found on programming the led strips in languages like C and Python, I could not find anything that connects the led strip to Scratch. This repository contains my solution to that...
@@ -45,5 +45,31 @@ In Scratch, you don't need to worry about these commands; this is all handled by
 ws2801_server.py is the server process that runs on the Raspberry Pi to process the commands sent by the Scratch extension. To run it, do the following on the Raspberry Pi:
 
 ```
-git clone 
+git clone https://github.com/ronbuist/ws2801scratch.git
+ws2801/ws2801_server.py
 ```
+The last command will start the server process which will wait for connections and then handle the commands that are being sent. It will run until you stop it with CTRL-C. If you're getting an error about Websockets not being installed, run the following:
+```
+sudo pip3 install websockets
+```
+Please take a look at ws2801_server.py. There are some configuration options in the beginning of the file. Please make sure you have set the amount of leds (pixels) your strip has (PIXEL_COUNT). Should you want to change the port number, please do so by changing the line that start with PORT=. Once everything is working as it should, you can run the program in the background using:
+```
+nohup python3 ws2801_server.py > ws2801_server.log 2>&1 & 
+```
+Alternatively, you could set the server up to run as a service on startup of the Raspberry Pi. That's beyond the scope of this document but there are lots of guides and tutorials available to figure out how to do this.
+
+Please write down (or remember) the IP address of your Raspberry Pi; we will need it in the following steps...
+
+### Making everything work together.
+To load ScratchX with the WS2801 already installed, please point your browser to [http://scratchx.org/?url=https://ronbuist.github.io/ws2801/ws2801.js#scratch](http://scratchx.org/?url=https://ronbuist.github.io/ws2801/ws2801.js#scratch). As Scratch is based on Adobe Flash, you will need to have the Flash Player installed. If all goes as it should, you will receive a warning about the experimental nature of ScratchX extensions. Fair enough; just click the 'I understand, continue' button. After that, you should see the Scratch development environment, with somewhere in the middle the code blocks of the WS2801 extension. The 'light' next to ws2801 will be yellow, indicating that the extension is ready but is not connected yet. You are now ready to code the led strip in Scratch!
+
+### Example Scratch programs.
+I have created two example programs in Scratch that will demonstrate how to use the blocks to code the led strip:
+
+1. [http://scratchx.org/?url=https://ronbuist.github.io/ws2801/GreenLights.sbx#scratch](http://scratchx.org/?url=https://ronbuist.github.io/ws2801/GreenLights.sbx#scratch). A simple example that connects to the server, sets all the pixels to bright green, waits 10 seconds and then closes the connection again. When the connection is closed, all the pixels will be switched off.
+2. [http://scratchx.org/?url=https://ronbuist.github.io/ws2801/WS2801ColorWheel.sbx#scratch](http://scratchx.org/?url=https://ronbuist.github.io/ws2801/WS2801ColorWheel.sbx#scratch). This example program will set the strip to the colors of a color wheel and then shift the pixels left. You can change the direction with the arrow left and arrow right keys. Pressing the space bar will end the program, but not before dimming all the leds until they are all switched off. For this example to work, you will need to replace the value 96 in the code by the number of leds your strip has. It seems more logical to have the WS2801 server reporting the amount of pixels the strip has, but this has not been implemented yet in the server.
+
+In both examples, you will need to change the IP address and port number to match the ws2801_server.py process running on your Raspberry Pi. This is done in the 'Connect to WS2801 server' code block.
+
+## Final note
+Even though you most certainly can run Scratch in the Raspbian GUI, this is not required. The server process is using websockets and connections could come from everywhere in your network. This means you can open scratchx.org on a different computer and then connect to the server process on the Raspberry Pi. You don't even need to install the GUI in Raspbian. In my opinion, the Raspberry Pi is a great machine but not fast enough to run a graphical user interface.
