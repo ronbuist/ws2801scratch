@@ -24,14 +24,14 @@
         window.socket = new WebSocket("ws:" + hostname + ":" + String(port));
         window.socket.onopen = function () {
 
-			// change status light from yellow to green.
+            // change status light from yellow to green.
             myMsg = 'ready';
             connected = true;
             myStatus = 2;
 
-			// initialize the led stripe
+            // initialize the led strip
             window.socket.send("init")
-            
+
             // give the connection some time to establish. Do this by waiting one
             // second. After that, call the callback function so Scratchx knows we're
             // done initializing the connection.
@@ -42,7 +42,7 @@
         };
 
         window.socket.onmessage = function (message) {
-        	// We're not expecting anything back from the websocket (yet)
+            // We're not expecting anything back from the websocket (yet)
             var msg = message.data;
             console.log(message.data)
         };
@@ -51,7 +51,7 @@
             console.log("Connection closed.");
             socket = null;
             connected = false;
-            myMsg = 'not_ready';				// back to yellow status.
+            myMsg = 'not_ready'; // back to yellow status.
             myStatus = 1;
         };
     };
@@ -61,7 +61,7 @@
         var msg = "clear";
         window.socket.send(msg);
         window.socket.onclose = function () {}; // disable onclose handler first
-    	window.socket.close();					// close the socket.
+    	window.socket.close(); // close the socket.
     };
 
     // Status reporting code
@@ -77,17 +77,20 @@
         }
         window.socket.send("clear");
     };
-    
+
+    // when the set all pixels block is executed
     ext.setPixels = function (red, green,blue) {
     	var msg = "setpixels " + String(red) + " " + String(green) + " " + String(blue);
     	window.socket.send(msg);
     };
-    
+
+    // when the set pixel block is executed
     ext.setPixel = function (pixel, red, green, blue) {
     	var msg = "setpixel " + String(pixel) + " " + String(red) + " " + String(green) + " " + String(blue);
     	window.socket.send(msg);
     };
-    
+
+    // when the autoshow block is executed
     ext.autoShow = function (autoShowValue) {
     	if (autoShowValue == "On") {
     		window.socket.send("autoshow on");
@@ -95,11 +98,13 @@
     		window.socket.send("autoshow off");
     	}
     };
-    
+
+    // when the show block is executed
     ext.show = function () {
     	window.socket.send("show");
     };
-    
+
+    // when the shift block is executed
     ext.shiftPixels = function (direction) {
     	if (direction == "Left") {
     		window.socket.send("shift left");
@@ -107,21 +112,38 @@
     		window.socket.send("shift right");
     	}
     };
-    
+
+    // when the dim block is executed
     ext.dim = function (dimAmount) {
       var msg = "dim " + String(dimAmount);
       window.socket.send(msg);
     };
-    
+
+    // when the disconnect from server block is executed
     ext.discnct = function () {
         var msg = "clear";
         window.socket.send(msg);
         window.socket.onclose = function () {}; // disable onclose handler first
-    	window.socket.close();					// close the socket.    	
+    	window.socket.close();                  // close the socket.
     	socket = null;
         connected = false;
-        myMsg = 'not_ready';				// back to yellow status.
+        myMsg = 'not_ready';                    // back to yellow status.
         myStatus = 1;
+    };
+
+    // when the number of pixels reporter block is executed
+    ext.getPixelCount = function(callback) {
+
+       // Onmessage handler to receive the result.
+       window.socket.onmessage = function (message) {
+            // Callback with the result
+            var pixelCount = parseInt(message.data);
+            callback(pixelCount);
+       };
+
+       // We're sending the getpixelcount command. This will return a value,
+       // which will be picked up by the onmessage event handler.
+       window.socket.send("getpixelcount");
     };
 
     // Block and block menu descriptions
@@ -136,12 +158,8 @@
             [" ", 'Autoshow %m.showstate', 'autoShow', "On"],
             [" ", 'Show pixels', 'show'],
             [" ", 'Shift pixels %m.direction', 'shiftPixels', "Left"],
-            [" ", 'Dim pixels %n', 'dim', "1"]
-            //[" ", "Set BCM %n Output to %m.high_low", "digital_write", "PIN", "0"],
-            //[" ", "Set BCM PWM Out %n to %n", "analog_write", "PIN", "VAL"],
-            //[" ", "Tone: BCM %n HZ: %n", "play_tone", "PIN", 1000],
-            //["r", "Read Digital Pin %n", "digital_read", "PIN"]
-
+            [" ", 'Dim pixels %n', 'dim', "1"],
+            ["R", 'number of pixels','getPixelCount']
         ],
         "menus": {
             "direction": ["Left", "Right"],

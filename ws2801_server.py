@@ -17,37 +17,45 @@ SPI_DEVICE = 0
 # Set the server port
 PORT = 8000
 
+# You can set DEBUG to True to receive logging on standard output.
+#DEBUG = True
+DEBUG = False
+
 async def socketHandler(websocket, path):
   try:
     while True:
       cmdLine = await websocket.recv()
       cmdList = cmdLine.split(" ")
       command = cmdList.pop(0)
-      #print("> Received command:", cmdLine)
+      if DEBUG:
+        print("> Received command:", cmdLine)
 
       # Process the command
       if command == "init":
-        # Initialize the led stripe.
-        #print(">> Initializing WS2801 stripe...")
+        # Initialize the led strip.
+        if DEBUG:
+          print(">> Initializing WS2801 strip...")
         pixels = Adafruit_WS2801.WS2801Pixels(PIXEL_COUNT, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE), gpio=GPIO)
 
         # Clear all the pixels to turn them off.
-        #print(">> Clearing all", PIXEL_COUNT, "pixels...")
+        if DEBUG:
+          print(">> Clearing all", PIXEL_COUNT, "pixels...")
         pixels.clear()
         pixels.show()  # Make sure to call show() after changing any pixels!
-        retMsg="OK"
 
         # By default, we will automatically show what was sent. This can be overridden with the autoshow command.
         autoShow = True
 
       elif command == "clear":
+        if DEBUG:
+          print(">> Handling clear command")
         pixels.clear()
         if autoShow:
           pixels.show()
-        retMsg="OK"
 
       elif command == "setpixel":
-        #print(">> Handling setpixel command")
+        if DEBUG:
+          print(">> Handling setpixel command")
         pix = int(cmdList.pop(0))
         red = int(cmdList.pop(0))
         green = int(cmdList.pop(0))
@@ -55,10 +63,10 @@ async def socketHandler(websocket, path):
         pixels.set_pixel_rgb(pix, red, blue,green)
         if autoShow:
           pixels.show()
-        retMsg="OK"
 
       elif command == "setpixels":
-        #print(">> Handling setpixels command")
+        if DEBUG:
+          print(">> Handling setpixels command")
         red = int(cmdList.pop(0))
         green = int(cmdList.pop(0))
         blue = int(cmdList.pop(0))
@@ -66,13 +74,14 @@ async def socketHandler(websocket, path):
         pixels.set_pixels(color)
         if autoShow:
           pixels.show()
-        retMsg="OK"
 
       elif command == "shift":
-        #print(">> Handling shift command")
+        if DEBUG:
+          print(">> Handling shift command")
         direction=cmdList.pop(0)
         if direction == "left":
-          #print(">> Shifting left...")
+          if DEBUG:
+            print(">> Shifting left...")
           leftmostPixelColor = pixels.get_pixel(0)
           for pix in range(1, pixels.count()):
             color = pixels.get_pixel(pix)
@@ -80,9 +89,9 @@ async def socketHandler(websocket, path):
           pixels.set_pixel(pixels.count()-1,leftmostPixelColor)
           if autoShow:
             pixels.show()
-          retMsg="OK"
         elif direction == "right":
-          #print(">> Shifting right...")
+          if DEBUG:
+            print(">> Shifting right...")
           rightmostPixelColor = pixels.get_pixel(pixels.count()-1)
           for pix in reversed(range(1,pixels.count())):
             color = pixels.get_pixel(pix-1)
@@ -90,12 +99,12 @@ async def socketHandler(websocket, path):
           pixels.set_pixel(0,rightmostPixelColor)
           if autoShow:
             pixels.show()
-          retMsg="OK"
         else:
-          print(">> Unknown direction:", direction)
-          retMsg="NOK"
+          print(">> Unknown shift direction:", direction)
 
       elif command == "dim":
+        if DEBUG:
+          print(">> Handling dim command")
         step = int(cmdList.pop(0))
         for i in range(pixels.count()):
           red, green, blue = pixels.get_pixel_rgb(i)
@@ -105,9 +114,10 @@ async def socketHandler(websocket, path):
           pixels.set_pixel(i, Adafruit_WS2801.RGB_to_color( red, green, blue ))
         if autoShow:
           pixels.show()
-        retMsg="OK"
 
       elif command == "autoshow":
+        if DEBUG:
+          print(">> Handling autoshow command")
         state = cmdList.pop(0)
         if state == "on":
           autoShow = True
@@ -117,16 +127,22 @@ async def socketHandler(websocket, path):
           print(">> Unknown state for autoshow:", state)
 
       elif command == "show":
+        if DEBUG:
+          print(">> Handling show command")
         pixels.show()
-        retMsg="OK"
+
+      elif command == "getpixelcount":
+        if DEBUG:
+          print(">> Handling getpixelcount command")
+          print(">> Returning pixel count", pixels.count())
+        await websocket.send(str(pixels.count()))
 
       else:
         print(">> Unknown command:", command)
-        retMsg="NOK"
 
-      #await websocket.send(retMsg)
   except websockets.exceptions.ConnectionClosed:
-    print("> Disconnected.")
+    if DEBUG:
+      print("> Disconnected.")
   except:
     print("> Unknown exception encountered.")
     raise
