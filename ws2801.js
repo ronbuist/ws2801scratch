@@ -131,6 +131,8 @@
 
     // when the dim block is executed
     ext.dim = function (dimAmount) {
+      dimAmount = Math.ceil(dimAmount);
+      dimAmount = colorLimit(dimAmount);
       var msg = "dim " + String(dimAmount);
       window.socket.send(msg);
     };
