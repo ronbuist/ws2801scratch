@@ -21,6 +21,15 @@
     var myMsg = 'not_ready';
     var pixelCount = 0;
 
+    // General functions.
+    function colorLimit(color) {
+        color = parseInt(color);
+        color = Math.min(255,color);
+        color = Math.max(0,color);
+        return color;
+    };
+
+    // when the connect to server block is executed.
     ext.cnct = function (hostname, port, callback) {
         window.socket = new WebSocket("ws:" + hostname + ":" + String(port));
         window.socket.onopen = function () {
@@ -69,7 +78,7 @@
         return {status: myStatus, msg: myMsg};
     };
 
-    // when the connect to server block is executed
+    // when the clear all pixels block is executed
     ext.clearPixels = function () {
         if (connected == false) {
             alert("Server Not Connected");
@@ -79,22 +88,30 @@
 
     // when the set all pixels block is executed
     ext.setPixels = function (red, green,blue) {
+        red = colorLimit(red);
+        green = colorLimit(green);
+        blue = colorLimit(blue);
     	var msg = "setpixels " + String(red) + " " + String(green) + " " + String(blue);
     	window.socket.send(msg);
     };
 
     // when the set pixel block is executed
     ext.setPixel = function (pixel, red, green, blue) {
-    	var msg = "setpixel " + String(pixel) + " " + String(red) + " " + String(green) + " " + String(blue);
-    	window.socket.send(msg);
+        if (pixel >= 0 && pixel <= pixelCount) {
+          red = colorLimit(red);
+          green = colorLimit(green);
+          blue = colorLimit(blue);
+          var msg = "setpixel " + String(pixel) + " " + String(red) + " " + String(green) + " " + String(blue);
+    	  window.socket.send(msg);
+        }
     };
 
     // when the autoshow block is executed
     ext.autoShow = function (autoShowValue) {
-    	if (autoShowValue == "On") {
-    		window.socket.send("autoshow on");
-    	} else {
-    		window.socket.send("autoshow off");
+        if (autoShowValue == "On") {
+          window.socket.send("autoshow on");
+        } else {
+          window.socket.send("autoshow off");
     	}
     };
 
