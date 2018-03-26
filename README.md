@@ -12,7 +12,7 @@ This is what I used:
 * A 5V 6A power supply to power the leds.
 
 ## Why the WS2801?
-I wanted to use the led strip in combination with a Raspberry Pi. The hugely popular WS2811 (Neopixel) strips are great, but need real-time controlling and that's something the Raspberry Pi cannot deliver. The WS2801 strips have an additional CLOCK (CLK) line, allowing the Raspberry Pi to control the pace of events.
+I wanted to use the led strip in combination with a Raspberry Pi. The hugely popular WS2812 (Neopixel) strips are great, but need real-time controlling and that's something the Raspberry Pi cannot deliver. The WS2801 strips have an additional CLOCK (CLK) line, allowing the Raspberry Pi to control the pace of events.
 
 ## Setting things up; building on the work of others
 Nowadays, there are so many great open source (scripting) languages, libraries and scripts to build upon and that's exactly what I did with my  project.
