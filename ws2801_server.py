@@ -46,6 +46,9 @@ async def socketHandler(websocket, path):
         # By default, we will automatically show what was sent. This can be overridden with the autoshow command.
         autoShow = True
 
+        # The init command replies with the number of pixels on the strip.
+        await websocket.send(str(pixels.count()))
+
       elif command == "clear":
         if DEBUG:
           print(">> Handling clear command")

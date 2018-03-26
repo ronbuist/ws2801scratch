@@ -19,32 +19,31 @@
     var connected = false;
     var myStatus = 1;						// initially, set light to yellow
     var myMsg = 'not_ready';
+    var pixelCount = 0;
 
     ext.cnct = function (hostname, port, callback) {
         window.socket = new WebSocket("ws:" + hostname + ":" + String(port));
         window.socket.onopen = function () {
+
+            // initialize the led strip
+            window.socket.send("init");
+
+        };
+
+        // Onmessage handler to receive the result. The result is the number of pixels,
+        // which we will store in a variable.
+        window.socket.onmessage = function (message) {
+
+            // store the number of pixels on the strip.
+            pixelCount = parseInt(message.data);
 
             // change status light from yellow to green.
             myMsg = 'ready';
             connected = true;
             myStatus = 2;
 
-            // initialize the led strip
-            window.socket.send("init")
-
-            // give the connection some time to establish. Do this by waiting one
-            // second. After that, call the callback function so Scratchx knows we're
-            // done initializing the connection.
-            window.setTimeout(function() {
-            	callback();
-            }, 1000);
-
-        };
-
-        window.socket.onmessage = function (message) {
-            // We're not expecting anything back from the websocket (yet)
-            var msg = message.data;
-            console.log(message.data)
+            // Callback to let Scratch know initialization is complete.
+            callback();
         };
 
         window.socket.onclose = function (e) {
@@ -129,21 +128,16 @@
         connected = false;
         myMsg = 'not_ready';                    // back to yellow status.
         myStatus = 1;
+        pixelCount = 0;
     };
 
     // when the number of pixels reporter block is executed
-    ext.getPixelCount = function(callback) {
+    ext.getPixelCount = function() {
 
-       // Onmessage handler to receive the result.
-       window.socket.onmessage = function (message) {
-            // Callback with the result
-            var pixelCount = parseInt(message.data);
-            callback(pixelCount);
-       };
+       // The number of pixels on the strip was already determined at initialization.
+       // Just return that number here...
+       return pixelCount;
 
-       // We're sending the getpixelcount command. This will return a value,
-       // which will be picked up by the onmessage event handler.
-       window.socket.send("getpixelcount");
     };
 
     // Block and block menu descriptions
@@ -159,7 +153,7 @@
             [" ", 'Show pixels', 'show'],
             [" ", 'Shift pixels %m.direction', 'shiftPixels', "Left"],
             [" ", 'Dim pixels %n', 'dim', "1"],
-            ["R", 'number of pixels','getPixelCount']
+            ["r", 'number of pixels','getPixelCount']
         ],
         "menus": {
             "direction": ["Left", "Right"],
