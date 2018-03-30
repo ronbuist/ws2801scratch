@@ -108,7 +108,7 @@
 
     // when the autoshow block is executed
     ext.autoShow = function (autoShowValue) {
-        if (autoShowValue == "On") {
+        if (autoShowValue == "On" || autoShowValue == "Aan") {
           window.socket.send("autoshow on");
         } else {
           window.socket.send("autoshow off");
@@ -122,7 +122,7 @@
 
     // when the shift block is executed
     ext.shiftPixels = function (direction) {
-    	if (direction == "Left") {
+    	if (direction == "Left" || direction == "Links") {
     		window.socket.send("shift left");
     	} else {
     		window.socket.send("shift right");
@@ -160,26 +160,56 @@
     };
 
     // Block and block menu descriptions
-    var descriptor = {
-        blocks: [
-            // Block type, block name, function name
-            ["w", 'Connect to WS2801 server on host %s and port %n.', 'cnct', "Host", "Port"],
-            [" ", 'Disconnect from WS2801 server', 'discnct'],
-            [" ", 'Clear All Pixels', 'clearPixels'],
-            [" ", 'Set All Pixels to color red %n green %n blue %n', 'setPixels', "0", "0", "0"],
-            [" ", 'Set pixel %n to color red %n green %n blue %n', 'setPixel', "0", "0", "0", "0"],
-            [" ", 'Autoshow %m.showstate', 'autoShow', "On"],
-            [" ", 'Show pixels', 'show'],
-            [" ", 'Shift pixels %m.direction', 'shiftPixels', "Left"],
-            [" ", 'Dim pixels %n', 'dim', "1"],
-            ["r", 'number of pixels','getPixelCount']
-        ],
-        "menus": {
-            "direction": ["Left", "Right"],
-            "showstate": ["On", "Off"]
+    var lang = navigator.language || navigator.userLanguage;
+    lang = lang.toUpperCase();
+    if (lang.includes('NL')) {
 
-        },
-        url: 'https://github.com/ronbuist/ws2801scratch'
+        var descriptor = {
+            blocks: [
+                // Block type, block name, function name
+                ["w", 'Verbind met WS2801 server op %s poort %n.', 'cnct', "Host", "Poort"],
+                [" ", 'Verbreek verbinding met WS2801 server', 'discnct'],
+                [" ", 'Alle pixels uit', 'clearPixels'],
+                [" ", 'Kleur alle pixels rood %n groen %n blauw %n', 'setPixels', "0", "0", "0"],
+                [" ", 'Kleur pixel %n rood %n groen %n blauw %n', 'setPixel', "0", "0", "0", "0"],
+                [" ", 'Direct zien %m.showstate', 'autoShow', "Aan"],
+                [" ", 'Toon pixels', 'show'],
+                [" ", 'Verschuif pixels %m.direction', 'shiftPixels', "Links"],
+                [" ", 'Maak pixels %n donker', 'dim', "1"],
+                ["r", 'Aantal pixels','getPixelCount']
+            ],
+            "menus": {
+                "direction": ["Links", "Rechts"],
+                "showstate": ["Aan", "Uit"]
+
+            },
+            url: 'https://github.com/ronbuist/ws2801scratch'
+        };
+
+    }
+    else {
+
+        var descriptor = {
+            blocks: [
+                // Block type, block name, function name
+                ["w", 'Connect to WS2801 server on host %s and port %n.', 'cnct', "Host", "Port"],
+                [" ", 'Disconnect from WS2801 server', 'discnct'],
+                [" ", 'Clear All Pixels', 'clearPixels'],
+                [" ", 'Set All Pixels to color red %n green %n blue %n', 'setPixels', "0", "0", "0"],
+                [" ", 'Set pixel %n to color red %n green %n blue %n', 'setPixel', "0", "0", "0", "0"],
+                [" ", 'Autoshow %m.showstate', 'autoShow', "On"],
+                [" ", 'Show pixels', 'show'],
+                [" ", 'Shift pixels %m.direction', 'shiftPixels', "Left"],
+                [" ", 'Dim pixels %n', 'dim', "1"],
+                ["r", 'number of pixels','getPixelCount']
+            ],
+            "menus": {
+                "direction": ["Left", "Right"],
+                "showstate": ["On", "Off"]
+
+            },
+            url: 'https://github.com/ronbuist/ws2801scratch'
+        };
     };
 
     // Register the extension
