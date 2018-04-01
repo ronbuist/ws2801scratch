@@ -23,6 +23,7 @@
 
     // General functions.
     function colorLimit(color) {
+        color = Math.floor(color);
         color = parseInt(color);
         color = Math.min(255,color);
         color = Math.max(0,color);
@@ -101,6 +102,7 @@
           red = colorLimit(red);
           green = colorLimit(green);
           blue = colorLimit(blue);
+          pixel = Math.floor(pixel);
           var msg = "setpixel " + String(pixel) + " " + String(red) + " " + String(green) + " " + String(blue);
     	  window.socket.send(msg);
         }
