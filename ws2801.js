@@ -20,6 +20,7 @@
     var myStatus = 1;						// initially, set light to yellow
     var myMsg = 'not_ready';
     var pixelCount = 0;
+    var realPixelCount = 0;
 
     // General functions.
     function colorLimit(color) {
@@ -46,6 +47,7 @@
 
             // store the number of pixels on the strip.
             pixelCount = parseInt(message.data);
+            realPixelCount = pixelCount;
 
             // change status light from yellow to green.
             myMsg = 'ready';
@@ -155,10 +157,22 @@
     // when the number of pixels reporter block is executed
     ext.getPixelCount = function() {
 
-       // The number of pixels on the strip was already determined at initialization.
+       // The number of pixels on the strip was already determined at initialization,
+       // or is was set later using setPixelCount().
        // Just return that number here...
        return pixelCount;
+    };
 
+    // When the set number of pixels block is executed
+    ext.setPixelCount = function(nrPixels) {
+      nrPixels = Math.floor(nrPixels);
+      nrPixels = Math.min(realPixelCount, nrPixels);
+      nrPixels = Math.max(1,nrPixels);
+      var msg = "setVirtualPixels " + String(nrPixels);
+      window.socket.send(msg);
+
+      // Set the pixel count.
+      pixelCount = parseInt(nrPixels);
     };
 
     // Block and block menu descriptions
@@ -178,6 +192,7 @@
                 [" ", 'Toon pixels', 'show'],
                 [" ", 'Verschuif pixels %m.direction', 'shiftPixels', "Links"],
                 [" ", 'Maak pixels %n donker', 'dim', "1"],
+                [" ", 'Stel aantal pixels in op %n', 'setPixelCount', "8"],
                 ["r", 'Aantal pixels','getPixelCount']
             ],
             "menus": {
@@ -203,6 +218,7 @@
                 [" ", 'Show pixels', 'show'],
                 [" ", 'Shift pixels %m.direction', 'shiftPixels', "Left"],
                 [" ", 'Dim pixels %n', 'dim', "1"],
+                [" ", 'Set number of pixels to %n', 'setPixelCount', "8"],
                 ["r", 'number of pixels','getPixelCount']
             ],
             "menus": {

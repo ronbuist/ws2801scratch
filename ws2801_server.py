@@ -22,6 +22,9 @@ PORT = 8000
 DEBUG = False
 
 async def socketHandler(websocket, path):
+
+  pixelCount=PIXEL_COUNT
+
   try:
     while True:
       cmdLine = await websocket.recv()
@@ -63,7 +66,13 @@ async def socketHandler(websocket, path):
         red = int(cmdList.pop(0))
         green = int(cmdList.pop(0))
         blue = int(cmdList.pop(0))
-        pixels.set_pixel_rgb(pix, red, blue,green)
+        if pixelCount < PIXEL_COUNT:
+          # Handle virtual split into multiple strips
+          while pix < PIXEL_COUNT:
+            pixels.set_pixel_rgb(pix, red, blue, green)
+            pix = pix + pixelCount
+        else:
+          pixels.set_pixel_rgb(pix, red, blue, green)
         if autoShow:
           pixels.show()
 
@@ -86,20 +95,50 @@ async def socketHandler(websocket, path):
           if DEBUG:
             print(">> Shifting left...")
           leftmostPixelColor = pixels.get_pixel(0)
-          for pix in range(1, pixels.count()):
-            color = pixels.get_pixel(pix)
-            pixels.set_pixel(pix-1,color)
-          pixels.set_pixel(pixels.count()-1,leftmostPixelColor)
+          if pixelCount < PIXEL_COUNT:
+            if DEBUG:
+              print(">>Handling virtual pixels for", pixelCount, "virtual pixels over",PIXEL_COUNT,"real pixels")
+            nrIterations = PIXEL_COUNT // pixelCount
+            for i in range(0, nrIterations):
+              for pix in range(1, pixelCount):
+                color = pixels.get_pixel(i*pixelCount+pix)
+                pixels.set_pixel(i*pixelCount+pix-1,color)
+              pixels.set_pixel((i+1)*pixelCount-1,leftmostPixelColor)
+            if PIXEL_COUNT % pixelCount > 0:
+              i = 0
+              for pix in range(nrIterations*pixelCount,PIXEL_COUNT):
+                color = pixels.get_pixel(i)
+                pixels.set_pixel(pix,color)
+                i = i + 1
+          else:
+            for pix in range(1, pixels.count()):
+              color = pixels.get_pixel(pix)
+              pixels.set_pixel(pix-1,color)
+            pixels.set_pixel(pixels.count()-1,leftmostPixelColor)
           if autoShow:
             pixels.show()
         elif direction == "right":
           if DEBUG:
             print(">> Shifting right...")
-          rightmostPixelColor = pixels.get_pixel(pixels.count()-1)
-          for pix in reversed(range(1,pixels.count())):
-            color = pixels.get_pixel(pix-1)
-            pixels.set_pixel(pix,color)
-          pixels.set_pixel(0,rightmostPixelColor)
+          rightmostPixelColor = pixels.get_pixel(pixelCount-1)
+          if pixelCount < PIXEL_COUNT:
+            if DEBUG:
+              print(">>Handling virtual pixels for", pixelCount, "virtual pixels over",PIXEL_COUNT,"real pixels")
+            nrIterations = PIXEL_COUNT // pixelCount
+            if PIXEL_COUNT % pixelCount > 0:
+              for pix in reversed(range(nrIterations*pixelCount,PIXEL_COUNT)):
+                color = pixels.get_pixel(pix-1)
+                pixels.set_pixel(pix,color)
+            for i in range(0, nrIterations):
+              for pix in reversed(range(1, pixelCount)):
+                color = pixels.get_pixel(i*pixelCount+pix-1)
+                pixels.set_pixel(i*pixelCount+pix,color)
+              pixels.set_pixel(i*pixelCount,rightmostPixelColor)
+          else:
+            for pix in reversed(range(1,pixels.count())):
+              color = pixels.get_pixel(pix-1)
+              pixels.set_pixel(pix,color)
+            pixels.set_pixel(0,rightmostPixelColor)
           if autoShow:
             pixels.show()
         else:
@@ -140,6 +179,12 @@ async def socketHandler(websocket, path):
           print(">> Returning pixel count", pixels.count())
         await websocket.send(str(pixels.count()))
 
+      elif command == "setVirtualPixels":
+        if DEBUG:
+          print(">> Handling setVirtualPixels")
+        nrPixels = int(cmdList.pop(0))
+        pixelCount = nrPixels
+
       else:
         print(">> Unknown command:", command)
 
@@ -150,7 +195,9 @@ async def socketHandler(websocket, path):
     print("> Unknown exception encountered.")
     raise
 
+print("WS2801 server starting...")
 start_server = websockets.serve(socketHandler, '0.0.0.0', PORT)
 
+print("> Websocket initialized. Now entering main loop...")
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
