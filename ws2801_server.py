@@ -21,6 +21,10 @@ PORT = 8000
 #DEBUG = True
 DEBUG = False
 
+# Some WS2801 strips use RBG for the color order. Set the color order using COLOR_ORDER.
+#COLOR_ORDER = "RGB"
+COLOR_ORDER = "RBG"
+
 async def socketHandler(websocket, path):
 
   pixelCount=PIXEL_COUNT
@@ -69,10 +73,16 @@ async def socketHandler(websocket, path):
         if pixelCount < PIXEL_COUNT:
           # Handle virtual split into multiple strips
           while pix < PIXEL_COUNT:
-            pixels.set_pixel_rgb(pix, red, blue, green)
+            if COLOR_ORDER == "RGB":
+              pixels.set_pixel_rgb(pix, red, green, blue)
+            else:
+              pixels.set_pixel_rgb(pix, red, blue, green)
             pix = pix + pixelCount
         else:
-          pixels.set_pixel_rgb(pix, red, blue, green)
+          if COLOR_ORDER == "RGB":
+            pixels.set_pixel_rgb(pix, red, green,blue)
+          else:
+            pixels.set_pixel_rgb(pix, red, blue, green)
         if autoShow:
           pixels.show()
 
@@ -82,7 +92,10 @@ async def socketHandler(websocket, path):
         red = int(cmdList.pop(0))
         green = int(cmdList.pop(0))
         blue = int(cmdList.pop(0))
-        color=Adafruit_WS2801.RGB_to_color(red,blue,green)
+        if COLOR_ORDER == "RGB":
+          color=Adafruit_WS2801.RGB_to_color(red,green,blue)
+        else:
+          color=Adafruit_WS2801.RGB_to_color(red,blue,green)
         pixels.set_pixels(color)
         if autoShow:
           pixels.show()
